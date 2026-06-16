@@ -137,7 +137,7 @@
           <div class="cell-label" data-i18n="timezoneLabel">TIMEZONE</div>
           <div class="cell-value" id="val-timezone">—</div>
         </div>
-        <div class="data-cell">
+        <div class="data-cell" id="connection-cell">
           <div class="cell-label" data-i18n="connectionType">CONNECTION</div>
           <div class="cell-value" id="val-connection">—</div>
         </div>
@@ -363,11 +363,10 @@
       document.getElementById('val-timezone').textContent = state.timezone;
       document.getElementById('val-timezone').className = 'cell-value';
 
-      const os = state.os;
-      const isPC = os === 'Windows' || os === 'macOS' || os === 'Linux';
+      const isPC = ['Windows', 'macOS', 'Linux'].includes(state.os);
       if (isPC) {
         state.connectionType = 'PC network';
-        document.getElementById('val-connection').closest('.data-cell').style.display = 'none';
+        document.getElementById('connection-cell').style.display = 'none';
       } else {
         const conn = navigator.connection;
         state.connectionType = conn ? (conn.effectiveType || '—') : '—';
@@ -387,15 +386,12 @@
     // ── Step 1: dynamic server cards ─────────────────────────────────────────
     function renderServerCards() {
       const container = document.getElementById('server-latency-cards');
-      container.innerHTML = CONFIG.servers.map(srv => {
-        const id = `val-lat-${srv.ip.replace(/\./g, '-')}`;
-        return `
-          <div class="data-cell">
-            <div class="cell-label">${srv.label.toUpperCase()} — ${srv.ip}</div>
-            <div class="cell-value loading" id="${id}">${t('testing')}</div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = CONFIG.servers.map(srv => `
+        <div class="data-cell">
+          <div class="cell-label">${srv.label.toUpperCase()} — ${srv.ip}</div>
+          <div class="cell-value">— <span style="font-size:10px;color:#94a3b8">(see traceroute)</span></div>
+        </div>
+      `).join('');
     }
 
     // ── IP + ISP ──────────────────────────────────────────────────────────────
@@ -419,53 +415,14 @@
       }
     }
 
-    // ── Latency via image ping ────────────────────────────────────────────────
+    // ── Packet loss ping (HTTP image trick — only valid for timeout detection) ──
     function pingOnce(ip) {
       return new Promise(resolve => {
-        const start = performance.now();
         const img   = new Image();
         const timer = setTimeout(() => { img.src = ''; resolve(3000); }, 3000);
-        img.onload = img.onerror = () => {
-          clearTimeout(timer);
-          resolve(Math.round(performance.now() - start));
-        };
+        img.onload = img.onerror = () => { clearTimeout(timer); resolve(0); };
         img.src = `http://${ip}/favicon.ico?_=${Date.now()}`;
       });
-    }
-
-    async function measureLatency(ip, reps = 5) {
-      const times = [];
-      for (let i = 0; i < reps; i++) {
-        times.push(await pingOnce(ip));
-        if (i < reps - 1) await new Promise(r => setTimeout(r, 200));
-      }
-      times.sort((a, b) => a - b);
-      return times[Math.floor(times.length / 2)];
-    }
-
-    function latencyClass(ms) {
-      if (ms >= 3000) return 'red';
-      if (ms > 250)   return 'red';
-      if (ms >= 100)  return 'yellow';
-      return 'green';
-    }
-
-    function latencyLabel(ms) {
-      if (ms >= 3000) return t('timeout');
-      const cls  = latencyClass(ms);
-      const icon = cls === 'green' ? '' : cls === 'yellow' ? ' ⚠' : ' ✗';
-      return `${ms} ms${icon}`;
-    }
-
-    async function measureAllLatency() {
-      for (const srv of CONFIG.servers) {
-        const id = `val-lat-${srv.ip.replace(/\./g, '-')}`;
-        const el = document.getElementById(id);
-        const ms = await measureLatency(srv.ip);
-        state.latencies[srv.ip] = ms;
-        el.textContent = latencyLabel(ms);
-        el.className   = `cell-value ${latencyClass(ms)}`;
-      }
     }
 
     // ── Packet loss (20 pings) ────────────────────────────────────────────────
@@ -759,7 +716,7 @@
       renderStep2();
       renderServerCards();
       fetchIPInfo();
-      measureAllLatency().then(() => measurePacketLoss());
+      measurePacketLoss();
     })();
   </script>
 </body>
