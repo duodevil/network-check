@@ -394,7 +394,7 @@
     // ── IP + ISP ──────────────────────────────────────────────────────────────
     async function fetchIPInfo() {
       try {
-        const res = await fetch('https://ipinfo.io/json');
+        const res = await fetch('https://ipapi.co/json/');
         const data = await res.json();
         state.ip   = data.ip;
         state.isp  = data.org  || '—';
