@@ -8,15 +8,13 @@ const SERVER_LABELS = ['Server A', 'Server B'];
 
 // ── Run once after deploy to create the header row ───────────────────────
 function setup() {
-  const sheet      = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
-  const latHeaders = SERVER_LABELS.map(l => `${l} Latency (ms)`);
-  const traceHdrs  = SERVER_LABELS.map(l => `Traceroute — ${l}`);
-  const headers    = [
+  const sheet     = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
+  const traceHdrs = SERVER_LABELS.map(l => `Traceroute — ${l}`);
+  const headers   = [
     'Submission Time', 'Issue Time', 'IP', 'ISP', 'City',
     'OS', 'Browser', 'Screen Resolution', 'Timezone', 'Connection Type',
     'Device Memory (GB)', 'CPU Cores',
-    ...latHeaders,
-    'Packet Loss (%)', 'Platform',
+    'Platform',
     ...traceHdrs,
     'Screenshot URL', 'Language', 'Ping Command',
     'Reverse Ping Result', 'Status',
@@ -47,9 +45,8 @@ function doPost(e) {
     }
 
     // Build row — column order must match setup() headers
-    const latencies = payload.servers.map(s => s.latency !== null ? s.latency : '—');
-    const traces    = payload.servers.map(s => s.traceroute || '—');
-    const row       = [
+    const traces = payload.servers.map(s => s.traceroute || '—');
+    const row    = [
       payload.submissionTime,
       payload.issueTime      || '—',
       payload.ip             || '—',
@@ -62,8 +59,6 @@ function doPost(e) {
       payload.connectionType || '—',
       payload.deviceMemory   || '—',
       payload.cpuCores       || '—',
-      ...latencies,
-      payload.packetLoss !== null ? payload.packetLoss : '—',
       payload.platform       || '—',
       ...traces,
       screenshotUrl,

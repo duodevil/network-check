@@ -121,10 +121,6 @@
         <div id="server-latency-cards" style="display:contents"></div>
         <div class="data-cell full">
           <div>
-            <div class="cell-label" data-i18n="packetLoss">PACKET LOSS</div>
-            <div class="cell-value loading" id="val-loss">…</div>
-          </div>
-          <div>
             <div class="cell-label" data-i18n="deviceOS">DEVICE / OS</div>
             <div class="cell-value" id="val-os">—</div>
           </div>
@@ -319,7 +315,6 @@
     const state = {
       ip: null, isp: null, city: null,
       latencies: {},
-      loss: null,
       os: null, browser: null,
       screen: null, timezone: null, connectionType: null,
       deviceMemory: null, cpuCores: null,
@@ -415,40 +410,6 @@
       }
     }
 
-    // ── Packet loss ping (HTTP image trick — only valid for timeout detection) ──
-    function pingOnce(ip) {
-      return new Promise(resolve => {
-        const img   = new Image();
-        const timer = setTimeout(() => { img.src = ''; resolve(3000); }, 3000);
-        img.onload = img.onerror = () => { clearTimeout(timer); resolve(0); };
-        img.src = `http://${ip}/favicon.ico?_=${Date.now()}`;
-      });
-    }
-
-    // ── Packet loss (20 pings) ────────────────────────────────────────────────
-    async function measurePacketLoss() {
-      const lossEl   = document.getElementById('val-loss');
-      const total    = 20;
-      let fails      = 0;
-      const targetIp = CONFIG.servers[0].ip;
-
-      for (let i = 0; i < total; i++) {
-        const ms = await pingOnce(targetIp);
-        if (ms >= 3000) fails++;
-        const done = i + 1;
-        const pct  = Math.round((fails / done) * 100);
-        lossEl.textContent = `${pct}% (${done}/${total})`;
-        lossEl.className   = 'cell-value loading';
-        if (i < total - 1) await new Promise(r => setTimeout(r, 500));
-      }
-
-      const lossPercent = Math.round((fails / total) * 100);
-      state.loss = lossPercent;
-      const lossCls  = lossPercent === 0 ? 'green' : lossPercent <= 3 ? 'yellow' : 'red';
-      const lossIcon = lossPercent === 0 ? '' : lossPercent <= 3 ? ' ⚠' : ' ✗';
-      lossEl.textContent = `${lossPercent}%${lossIcon}`;
-      lossEl.className   = `cell-value ${lossCls}`;
-    }
 
     // ── Step 2: platform helpers ──────────────────────────────────────────────
     function getActivePlatform() {
@@ -667,10 +628,8 @@
         servers:        CONFIG.servers.map(srv => ({
           label:      srv.label,
           ip:         srv.ip,
-          latency:    state.latencies[srv.ip] !== undefined ? state.latencies[srv.ip] : null,
           traceroute: state.traces[srv.ip] || '',
         })),
-        packetLoss: state.loss,
         platform:   getActivePlatform(),
         language:   currentLang,
         screenshot: state.screenshot || null,
@@ -716,7 +675,6 @@
       renderStep2();
       renderServerCards();
       fetchIPInfo();
-      measurePacketLoss();
     })();
   </script>
 </body>
