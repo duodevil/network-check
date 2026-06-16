@@ -389,22 +389,31 @@
         return;
       }
 
-      // ISP/city is best-effort — failure here doesn't block submission
-      try {
-        const controller = new AbortController();
-        const ispTimer   = setTimeout(() => controller.abort(), 5000);
-        const infoRes    = await fetch(`https://ipapi.co/${state.ip}/json/`, { signal: controller.signal });
-        clearTimeout(ispTimer);
-        const data = await infoRes.json();
-        state.isp  = data.org  || '—';
-        state.city = data.city || '—';
-        document.getElementById('val-isp').textContent = data.org || '—';
-        document.getElementById('val-isp').className   = 'cell-value';
-      } catch {
-        state.isp = '—';
-        document.getElementById('val-isp').textContent = '—';
-        document.getElementById('val-isp').className   = 'cell-value';
+      // ISP/city is best-effort — tries ipapi.co then ipwho.is as fallback
+      async function fetchISP(url, extract) {
+        const ctrl  = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 5000);
+        try {
+          const res  = await fetch(url, { signal: ctrl.signal });
+          const data = await res.json();
+          clearTimeout(timer);
+          return extract(data);
+        } catch { clearTimeout(timer); return null; }
       }
+
+      const isp1 = await fetchISP(
+        `https://ipapi.co/${state.ip}/json/`,
+        d => d.org ? { isp: d.org, city: d.city || '—' } : null
+      );
+      const ispInfo = isp1 || await fetchISP(
+        `https://ipwho.is/${state.ip}`,
+        d => d.success && d.connection?.isp ? { isp: d.connection.isp, city: d.city || '—' } : null
+      );
+
+      state.isp  = ispInfo ? ispInfo.isp  : '—';
+      state.city = ispInfo ? ispInfo.city : '—';
+      document.getElementById('val-isp').textContent = state.isp;
+      document.getElementById('val-isp').className   = 'cell-value';
     }
 
 
