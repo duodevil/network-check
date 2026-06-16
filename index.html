@@ -36,11 +36,6 @@
     .cell-value.red { color: #dc2626; }
 
     /* Platform tabs */
-    .platform-tabs { display: flex; gap: 4px; margin-bottom: 14px; }
-    .platform-tab { border: none; border-radius: 5px; padding: 4px 14px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background .15s; }
-    .platform-tab.active { background: #4f46e5; color: #fff; }
-    .platform-tab:not(.active) { background: #f1f5f9; color: #64748b; }
-    .platform-tab:not(.active):hover { background: #e2e8f0; }
 
     /* Code block */
     .code-block { background: #1e293b; color: #a5f3fc; border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
@@ -318,7 +313,6 @@
       deviceMemory: null, cpuCores: null,
       traces: {},
       screenshots: [],
-      platformTab: null,
     };
 
     // ── OS / Browser detection ────────────────────────────────────────────────
@@ -381,22 +375,30 @@
     // ── IP + ISP ──────────────────────────────────────────────────────────────
     async function fetchIPInfo() {
       try {
-        // api4.ipify.org forces IPv4 regardless of device network preference
         const ipRes  = await fetch('https://api4.ipify.org?format=json');
         const { ip } = await ipRes.json();
-        const infoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-        const data    = await infoRes.json();
-        state.ip   = ip;
-        state.isp  = data.org  || '—';
-        state.city = data.city || '—';
-        document.getElementById('val-ip').textContent  = ip;
-        document.getElementById('val-ip').className    = 'cell-value';
-        document.getElementById('val-isp').textContent = data.org || '—';
-        document.getElementById('val-isp').className   = 'cell-value';
+        state.ip = ip;
+        document.getElementById('val-ip').textContent = ip;
+        document.getElementById('val-ip').className   = 'cell-value';
       } catch {
         document.getElementById('val-ip').innerHTML =
           `<span style="color:#dc2626;font-size:11px">${t('failed')}</span>` +
           `<button class="retry-btn" onclick="fetchIPInfo()">↺</button>`;
+        document.getElementById('val-isp').textContent = '—';
+        document.getElementById('val-isp').className   = 'cell-value';
+        return;
+      }
+
+      // ISP/city is best-effort — failure here doesn't block submission
+      try {
+        const infoRes = await fetch(`https://ipapi.co/${state.ip}/json/`);
+        const data    = await infoRes.json();
+        state.isp  = data.org  || '—';
+        state.city = data.city || '—';
+        document.getElementById('val-isp').textContent = data.org || '—';
+        document.getElementById('val-isp').className   = 'cell-value';
+      } catch {
+        state.isp = '—';
         document.getElementById('val-isp').textContent = '—';
         document.getElementById('val-isp').className   = 'cell-value';
       }
@@ -405,17 +407,10 @@
 
     // ── Step 2: platform helpers ──────────────────────────────────────────────
     function getActivePlatform() {
-      const autoTab = (state.os === 'iOS' || state.os === 'Android') ? state.os : 'PC';
-      return state.platformTab || autoTab;
+      return (state.os === 'iOS' || state.os === 'Android') ? state.os : 'PC';
     }
 
-    function setPlatform(tab) {
-      const autoTab = (state.os === 'iOS' || state.os === 'Android') ? state.os : 'PC';
-      state.platformTab = (tab === autoTab) ? null : tab;
-      renderStep2();
-    }
-
-    function copyCmd(text, btn) {
+function copyCmd(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         const orig = btn.textContent;
         btn.textContent = '✓';
@@ -469,17 +464,8 @@
 
       label.textContent = t('step2Label');
 
-      const tabsHtml = `
-        <div class="platform-tabs">
-          <button class="platform-tab ${active === 'PC' ? 'active' : ''}" onclick="setPlatform('PC')">PC / Mac</button>
-          <button class="platform-tab ${active === 'iOS' ? 'active' : ''}" onclick="setPlatform('iOS')">iOS</button>
-          <button class="platform-tab ${active === 'Android' ? 'active' : ''}" onclick="setPlatform('Android')">Android</button>
-        </div>
-      `;
-
       if (active === 'PC') {
-        const desktopOS = (state.os === 'iOS' || state.os === 'Android') ? 'Windows' : (state.os || 'Windows');
-        const isWin     = desktopOS !== 'macOS';
+        const isWin     = state.os !== 'macOS';
         const cmdPrefix = isWin ? 'tracert' : 'traceroute';
         const instr1    = isWin ? t('traceInstr1Win') : t('traceInstr1Mac');
 
@@ -512,7 +498,7 @@
           `;
         }).join('');
 
-        content.innerHTML = tabsHtml + instrHtml + serversHtml;
+        content.innerHTML = instrHtml + serversHtml;
 
         CONFIG.servers.forEach(srv => {
           const el = document.getElementById(`trace-${srv.ip.replace(/\./g, '-')}`);
@@ -549,7 +535,7 @@
           ).join('')
         : '';
 
-      content.innerHTML = tabsHtml + `
+      content.innerHTML = `
         <ol class="instructions" style="list-style:none;margin-bottom:14px">${stepsHtml}</ol>
         <div style="background:#f8fafc;border-radius:8px;padding:10px;margin-bottom:12px">
           <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">${ipsLabel}</div>
