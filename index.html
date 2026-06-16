@@ -318,10 +318,10 @@
     // ── OS / Browser detection ────────────────────────────────────────────────
     function detectOS() {
       const ua = navigator.userAgent;
+      if (/iPhone|iPad/i.test(ua)) return 'iOS';   // must check before macOS — iOS UA contains "Mac OS X"
+      if (/Android/i.test(ua)) return 'Android';
       if (/Windows/i.test(ua)) return 'Windows';
       if (/Macintosh|Mac OS X/i.test(ua)) return 'macOS';
-      if (/Android/i.test(ua)) return 'Android';
-      if (/iPhone|iPad/i.test(ua)) return 'iOS';
       if (/Linux/i.test(ua)) return 'Linux';
       return 'Unknown';
     }
