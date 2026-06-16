@@ -117,9 +117,7 @@
           <div class="cell-label" data-i18n="yourISP">ISP</div>
           <div class="cell-value loading" id="val-isp">…</div>
         </div>
-        <!-- server latency cards injected here by renderServerCards() -->
-        <div id="server-latency-cards" style="display:contents"></div>
-        <div class="data-cell full">
+<div class="data-cell full">
           <div>
             <div class="cell-label" data-i18n="deviceOS">DEVICE / OS</div>
             <div class="cell-value" id="val-os">—</div>
@@ -380,16 +378,6 @@
     }
 
     // ── Step 1: dynamic server cards ─────────────────────────────────────────
-    function renderServerCards() {
-      const container = document.getElementById('server-latency-cards');
-      container.innerHTML = CONFIG.servers.map(srv => `
-        <div class="data-cell">
-          <div class="cell-label">${srv.label.toUpperCase()} — ${srv.ip}</div>
-          <div class="cell-value">— <span style="font-size:10px;color:#94a3b8">(see traceroute)</span></div>
-        </div>
-      `).join('');
-    }
-
     // ── IP + ISP ──────────────────────────────────────────────────────────────
     async function fetchIPInfo() {
       try {
@@ -678,7 +666,6 @@
 
       collectDeviceInfo();
       renderStep2();
-      renderServerCards();
       fetchIPInfo();
     })();
   </script>
