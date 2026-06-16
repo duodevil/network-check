@@ -363,10 +363,17 @@
       document.getElementById('val-timezone').textContent = state.timezone;
       document.getElementById('val-timezone').className = 'cell-value';
 
-      const conn = navigator.connection;
-      state.connectionType = conn ? (conn.effectiveType || '—') : '—';
-      document.getElementById('val-connection').textContent = state.connectionType;
-      document.getElementById('val-connection').className = 'cell-value';
+      const os = state.os;
+      const isPC = os === 'Windows' || os === 'macOS' || os === 'Linux';
+      if (isPC) {
+        state.connectionType = 'PC network';
+        document.getElementById('val-connection').closest('.data-cell').style.display = 'none';
+      } else {
+        const conn = navigator.connection;
+        state.connectionType = conn ? (conn.effectiveType || '—') : '—';
+        document.getElementById('val-connection').textContent = state.connectionType;
+        document.getElementById('val-connection').className = 'cell-value';
+      }
 
       state.deviceMemory = navigator.deviceMemory ? `${navigator.deviceMemory} GB` : '—';
       document.getElementById('val-memory').textContent = state.deviceMemory;
