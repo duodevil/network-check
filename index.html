@@ -391,8 +391,11 @@
 
       // ISP/city is best-effort — failure here doesn't block submission
       try {
-        const infoRes = await fetch(`https://ipapi.co/${state.ip}/json/`);
-        const data    = await infoRes.json();
+        const controller = new AbortController();
+        const ispTimer   = setTimeout(() => controller.abort(), 5000);
+        const infoRes    = await fetch(`https://ipapi.co/${state.ip}/json/`, { signal: controller.signal });
+        clearTimeout(ispTimer);
+        const data = await infoRes.json();
         state.isp  = data.org  || '—';
         state.city = data.city || '—';
         document.getElementById('val-isp').textContent = data.org || '—';
