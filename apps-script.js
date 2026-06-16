@@ -29,19 +29,18 @@ function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
 
-    // Save screenshot to Drive if present
+    // Save screenshots to Drive if present (supports multiple)
     let screenshotUrl = '—';
-    if (payload.screenshot) {
-      const folder   = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-      const filename = `${payload.submissionTime}_${payload.ip}.jpg`.replace(/[: ]/g, '-');
-      const blob     = Utilities.newBlob(
-        Utilities.base64Decode(payload.screenshot.data),
-        payload.screenshot.mimeType,
-        filename
-      );
-      const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      screenshotUrl = file.getUrl();
+    if (payload.screenshots && payload.screenshots.length) {
+      const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+      const urls   = payload.screenshots.map((s, i) => {
+        const filename = `${payload.submissionTime}_${payload.ip}_${i + 1}.jpg`.replace(/[: ]/g, '-');
+        const blob     = Utilities.newBlob(Utilities.base64Decode(s.data), s.mimeType, filename);
+        const file     = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        return file.getUrl();
+      });
+      screenshotUrl = urls.join('\n');
     }
 
     // Build row — column order must match setup() headers

@@ -319,7 +319,7 @@
       screen: null, timezone: null, connectionType: null,
       deviceMemory: null, cpuCores: null,
       traces: {},
-      screenshot: null,
+      screenshots: [],
       platformTab: null,
     };
 
@@ -364,7 +364,8 @@
         document.getElementById('connection-cell').style.display = 'none';
       } else {
         const conn = navigator.connection;
-        state.connectionType = conn ? (conn.effectiveType || '—') : '—';
+        const typeMap = { '4g': '4G', '3g': '3G', '2g': '2G', 'slow-2g': '2G' };
+        state.connectionType = conn ? (typeMap[conn.effectiveType] || conn.effectiveType || '—') : '—';
         document.getElementById('val-connection').textContent = state.connectionType;
         document.getElementById('val-connection').className = 'cell-value';
       }
@@ -392,12 +393,15 @@
     // ── IP + ISP ──────────────────────────────────────────────────────────────
     async function fetchIPInfo() {
       try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        state.ip   = data.ip;
+        // api4.ipify.org forces IPv4 regardless of device network preference
+        const ipRes  = await fetch('https://api4.ipify.org?format=json');
+        const { ip } = await ipRes.json();
+        const infoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+        const data    = await infoRes.json();
+        state.ip   = ip;
         state.isp  = data.org  || '—';
         state.city = data.city || '—';
-        document.getElementById('val-ip').textContent  = data.ip;
+        document.getElementById('val-ip').textContent  = ip;
         document.getElementById('val-ip').className    = 'cell-value';
         document.getElementById('val-isp').textContent = data.org || '—';
         document.getElementById('val-isp').className   = 'cell-value';
@@ -438,13 +442,14 @@
       });
     }
 
-    // ── Screenshot upload ─────────────────────────────────────────────────────
+    // ── Screenshot upload (multi-file) ───────────────────────────────────────
     function handleScreenshotUpload(input) {
-      const file = input.files[0];
-      if (!file) return;
+      const files = Array.from(input.files);
+      if (!files.length) return;
 
       const errEl = document.getElementById('upload-error');
-      if (file.size > 10 * 1024 * 1024) {
+      const oversized = files.filter(f => f.size > 10 * 1024 * 1024);
+      if (oversized.length) {
         errEl.textContent = t('uploadSizeError');
         errEl.style.display = 'block';
         input.value = '';
@@ -452,19 +457,16 @@
       }
       errEl.style.display = 'none';
 
-      const reader = new FileReader();
-      reader.onload = e => {
-        const dataUrl = e.target.result;
-        state.screenshot = {
-          data:     dataUrl.split(',')[1],
-          mimeType: file.type,
-        };
-        const preview = document.getElementById('upload-preview');
-        preview.src           = dataUrl;
-        preview.style.display = 'block';
-        preview.alt           = t('uploadPreviewAlt');
-      };
-      reader.readAsDataURL(file);
+      Promise.all(files.map(file => new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve({ data: e.target.result.split(',')[1], mimeType: file.type, dataUrl: e.target.result });
+        reader.readAsDataURL(file);
+      }))).then(results => {
+        state.screenshots = results.map(r => ({ data: r.data, mimeType: r.mimeType }));
+        document.getElementById('upload-preview-container').innerHTML = results.map(r =>
+          `<img src="${r.dataUrl}" style="max-height:120px;border-radius:6px;object-fit:contain;" alt="${t('uploadPreviewAlt')}">`
+        ).join('');
+      });
     }
 
     function onTraceInput(ip, value) {
@@ -553,8 +555,11 @@
         </div>
       `).join('');
 
-      const previewSrc = state.screenshot ? `data:${state.screenshot.mimeType};base64,${state.screenshot.data}` : '';
-      const previewVis = state.screenshot ? 'block' : 'none';
+      const previewHtml = state.screenshots.length
+        ? state.screenshots.map(s =>
+            `<img src="data:${s.mimeType};base64,${s.data}" style="max-height:120px;border-radius:6px;object-fit:contain;" alt="${t('uploadPreviewAlt')}">`
+          ).join('')
+        : '';
 
       content.innerHTML = tabsHtml + `
         <ol class="instructions" style="list-style:none;margin-bottom:14px">${stepsHtml}</ol>
@@ -568,12 +573,12 @@
         </a>
         <div class="upload-area">
           <label class="upload-btn" for="screenshot-input">${t('uploadScreenshot')}</label>
-          <input type="file" id="screenshot-input" accept="image/*" style="display:none"
+          <input type="file" id="screenshot-input" accept="image/*" multiple style="display:none"
                  onchange="handleScreenshotUpload(this)">
           <div class="upload-error" id="upload-error"></div>
-          <img class="upload-preview" id="upload-preview"
-               src="${previewSrc}" style="display:${previewVis}"
-               alt="${t('uploadPreviewAlt')}">
+          <div id="upload-preview-container" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+            ${previewHtml}
+          </div>
         </div>
       `;
     }
@@ -632,7 +637,7 @@
         })),
         platform:   getActivePlatform(),
         language:   currentLang,
-        screenshot: state.screenshot || null,
+        screenshots: state.screenshots,
       };
 
       if (!CONFIG.appsScriptUrl) {
