@@ -12,10 +12,8 @@
     .header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
     .header-title { font-weight: 700; font-size: 16px; color: #1e293b; }
     .header-sub { font-size: 11px; color: #94a3b8; margin-top: 1px; }
-    .lang-toggle { display: flex; gap: 4px; }
-    .lang-btn { border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-weight: 600; transition: background .15s; }
-    .lang-btn.active { background: #4f46e5; color: #fff; }
-    .lang-btn:not(.active) { background: #f1f5f9; color: #64748b; }
+    .lang-select { border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; color: #334155; font-size: 12px; font-weight: 600; padding: 5px 26px 5px 10px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L2 4h8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 10px; }
+    .lang-select:focus { outline: none; border-color: #4f46e5; }
 
     /* Layout */
     .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
@@ -95,10 +93,14 @@
       <div class="header-title" id="header-game">Network Check</div>
       <div class="header-sub" id="header-region"></div>
     </div>
-    <div class="lang-toggle">
-      <button class="lang-btn active" onclick="setLang('en')">EN</button>
-      <button class="lang-btn" onclick="setLang('zh')">中文</button>
-    </div>
+    <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+      <option value="en">English</option>
+      <option value="zh">中文</option>
+      <option value="vi">Tiếng Việt</option>
+      <option value="th">ไทย</option>
+      <option value="id">Bahasa Indonesia</option>
+      <option value="es">Español</option>
+    </select>
   </header>
 
   <div class="container">
@@ -201,6 +203,11 @@
     // ─────────────────────────────────────────────────────────────────────────
 
     // ── i18n ─────────────────────────────────────────────────────────────────
+    const openIdGuide = (text, cap1, cap2) =>
+      `${text}<div style="display:flex;gap:8px;margin-top:8px">` +
+      `<div style="flex:1;text-align:center"><img src="img/openid-step1.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">① ${cap1}</div></div>` +
+      `<div style="flex:1;text-align:center"><img src="img/openid-step2.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">② ${cap2}</div></div></div>`;
+
     const i18n = {
       en: {
         step1Label:      'STEP 1 — AUTO DETECTED',
@@ -240,7 +247,7 @@
         uploadPreviewAlt:'Screenshot preview',
         step3Label:       'STEP 3 — ISSUE DETAILS',
         openIdLabel:      'Open ID',
-        openIdGuide:      'In-game: tap your avatar (top-left) → Character Info → tap the copy icon next to your ID (bottom-right). Paste it here. Leave blank if unavailable.<div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1;text-align:center"><img src="img/openid-step1.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">① Tap avatar (top-left)</div></div><div style="flex:1;text-align:center"><img src="img/openid-step2.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">② Copy ID (bottom-right)</div></div></div>',
+        openIdGuide:      openIdGuide('In-game: tap your avatar (top-left) → Character Info → tap the copy icon next to your ID (bottom-right). Paste it here. Leave blank if unavailable.', 'Tap avatar (top-left)', 'Copy ID (bottom-right)'),
         openIdPlaceholder:'e.g. 123456789',
         nicknameLabel:    'In-Game Nickname',
         nicknamePlaceholder:'Your in-game nickname',
@@ -297,7 +304,7 @@
         uploadPreviewAlt:'截圖預覽',
         step3Label:       '步驟 3 — 問題詳情',
         openIdLabel:      'Open ID',
-        openIdGuide:      '在遊戲中：點選左上角頭像 → 進入角色資訊頁面 → 點選右下角 ID 旁的複製按鈕，將複製下來的 ID 貼到此處。無法取得可留空。<div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1;text-align:center"><img src="img/openid-step1.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">① 點選左上角頭像</div></div><div style="flex:1;text-align:center"><img src="img/openid-step2.png" style="width:100%;max-width:220px;border-radius:8px;border:1px solid #e2e8f0"><div style="font-size:10px;color:#94a3b8;margin-top:3px">② 點右下角複製按鈕</div></div></div>',
+        openIdGuide:      openIdGuide('在遊戲中：點選左上角頭像 → 進入角色資訊頁面 → 點選右下角 ID 旁的複製按鈕，將複製下來的 ID 貼到此處。無法取得可留空。', '點選左上角頭像', '點右下角複製按鈕'),
         openIdPlaceholder:'例如：123456789',
         nicknameLabel:    '遊戲暱稱',
         nicknamePlaceholder:'你的遊戲暱稱',
@@ -315,6 +322,234 @@
         testing:         '測試中…',
         timeout:         '逾時 ✗',
         failed:          '失敗 ✗',
+      },
+      vi: {
+        step1Label:      'BƯỚC 1 — TỰ ĐỘNG PHÁT HIỆN',
+        yourIP:          'IP CỦA BẠN',
+        yourISP:         'NHÀ MẠNG',
+        packetLoss:      'TỶ LỆ MẤT GÓI',
+        deviceOS:        'THIẾT BỊ / HỆ ĐIỀU HÀNH',
+        screenRes:       'MÀN HÌNH',
+        timezoneLabel:   'MÚI GIỜ',
+        connectionType:  'KẾT NỐI',
+        deviceMemory:    'BỘ NHỚ',
+        cpuCores:        'SỐ NHÂN CPU',
+        step2Label:       'BƯỚC 2 — TRACEROUTE',
+        step2Loading:     'Đang tải thông tin máy chủ…',
+        traceInstr1Win:  'Nhấn <strong>nút Start</strong> (biểu tượng Windows ở góc dưới bên trái màn hình) → gõ <kbd>cmd</kbd> → chọn <strong>Command Prompt</strong>',
+        traceInstr1Mac:  'Nhấn biểu tượng <strong>🔍 kính lúp</strong> ở góc trên bên phải màn hình → gõ <kbd>Terminal</kbd> → nhấn Enter',
+        traceInstr2:     'Sao chép và chạy lệnh sau:',
+        traceInstr3:     'Dán kết quả vào ô bên dưới:',
+        traceHint:       '⏳ Vui lòng đợi đến ít nhất hop 15 rồi mới dán kết quả.',
+        pastePlaceholder:'Dán kết quả traceroute vào đây…',
+        iosStep1:        'Tải <strong>Network Analyzer: net tools</strong> từ App Store (miễn phí)',
+        iosStep2:        'Mở ứng dụng → chạm <strong>Tools</strong> ở thanh dưới',
+        iosStep3:        'Chọn tab <strong>Route</strong> → nhập IP bên dưới → chạm <strong>Start</strong> (góc trên bên phải)',
+        iosStep4:        '⏳ Đợi đến khi hiện ít nhất 15 hop',
+        iosStep5:        'Chụp màn hình kết quả',
+        iosIPsLabel:     'Chạy Route cho từng IP:',
+        iosAppStoreBtn:  '⬇ Tải trên App Store',
+        androidStep1:    'Tìm <strong>Network Analyzer</strong> trên Google Play và cài đặt (miễn phí)',
+        androidStep2:    'Mở ứng dụng → chạm <strong>Tools</strong> → chọn tab <strong>Route</strong>',
+        androidStep3:    'Nhập IP bên dưới → chạm <strong>Start</strong>',
+        androidStep4:    '⏳ Đợi đến khi hiện ít nhất 15 hop',
+        androidStep5:    'Chụp màn hình kết quả',
+        androidIPsLabel: 'Chạy Route cho từng IP:',
+        androidPlayBtn:  '⬇ Tải trên Google Play',
+        uploadScreenshot:'📷 Tải ảnh chụp màn hình',
+        uploadSizeError: 'Tệp quá lớn (tối đa 10 MB). Vui lòng nén lại và thử lại.',
+        uploadPreviewAlt:'Xem trước ảnh chụp màn hình',
+        step3Label:       'BƯỚC 3 — CHI TIẾT SỰ CỐ',
+        openIdLabel:      'Open ID',
+        openIdGuide:      openIdGuide('Trong game: chạm vào ảnh đại diện (góc trên bên trái) → Thông tin nhân vật → chạm biểu tượng sao chép bên cạnh ID (góc dưới bên phải). Dán vào đây. Để trống nếu không lấy được.', 'Chạm ảnh đại diện (trên trái)', 'Sao chép ID (dưới phải)'),
+        openIdPlaceholder:'ví dụ: 123456789',
+        nicknameLabel:    'Tên nhân vật trong game',
+        nicknamePlaceholder:'Tên nhân vật của bạn',
+        nicknameGuide:    'Nếu không đăng nhập được, hãy nhập tên nhân vật của bạn',
+        issueTimeLabel:  'Sự cố xảy ra khi nào?',
+        issueTimeSub:    'Thời gian ước lượng là được — để trống nếu không chắc',
+        step4Label:      'BƯỚC 4 — GỬI',
+        disclaimerText:  'Khi gửi báo cáo này, bạn đồng ý chia sẻ dữ liệu chẩn đoán mạng của mình, bao gồm địa chỉ IP, thông tin thiết bị và các kết quả ở trên, với đội ngũ hỗ trợ để phục vụ việc điều tra sự cố kết nối. Dữ liệu này sẽ không được chia sẻ với bên thứ ba.',
+        submitBtn:       'Tôi đồng ý và gửi',
+        submitting:      'Đang gửi…',
+        submittedBtn:    'Đã gửi ✓',
+        submitError:     'Gửi thất bại. Vui lòng thử lại.',
+        submitErrorNoIP: 'Vui lòng đợi phát hiện IP hoàn tất trước khi gửi.',
+        detecting:       'Đang phát hiện…',
+        testing:         'Đang kiểm tra…',
+        timeout:         'Hết thời gian ✗',
+        failed:          'Thất bại ✗',
+      },
+      th: {
+        step1Label:      'ขั้นตอนที่ 1 — ตรวจจับอัตโนมัติ',
+        yourIP:          'IP ของคุณ',
+        yourISP:         'ผู้ให้บริการอินเทอร์เน็ต',
+        packetLoss:      'อัตราการสูญหายของแพ็กเก็ต',
+        deviceOS:        'อุปกรณ์ / ระบบปฏิบัติการ',
+        screenRes:       'หน้าจอ',
+        timezoneLabel:   'เขตเวลา',
+        connectionType:  'การเชื่อมต่อ',
+        deviceMemory:    'หน่วยความจำ',
+        cpuCores:        'จำนวนคอร์ CPU',
+        step2Label:       'ขั้นตอนที่ 2 — TRACEROUTE',
+        step2Loading:     'กำลังโหลดข้อมูลเซิร์ฟเวอร์…',
+        traceInstr1Win:  'คลิก <strong>ปุ่ม Start</strong> (โลโก้ Windows ที่มุมล่างซ้ายของหน้าจอ) → พิมพ์ <kbd>cmd</kbd> → คลิก <strong>Command Prompt</strong>',
+        traceInstr1Mac:  'คลิกไอคอน <strong>🔍 แว่นขยาย</strong> ที่มุมบนขวาของหน้าจอ → พิมพ์ <kbd>Terminal</kbd> → กด Enter',
+        traceInstr2:     'คัดลอกและรันคำสั่งนี้:',
+        traceInstr3:     'วางผลลัพธ์ลงในช่องด้านล่าง:',
+        traceHint:       '⏳ กรุณารอจนกว่าจะขึ้นอย่างน้อย hop 15 ก่อนวางผลลัพธ์',
+        pastePlaceholder:'วางผลลัพธ์ traceroute ที่นี่…',
+        iosStep1:        'ดาวน์โหลด <strong>Network Analyzer: net tools</strong> จาก App Store (ฟรี)',
+        iosStep2:        'เปิดแอป → แตะ <strong>Tools</strong> ที่แถบด้านล่าง',
+        iosStep3:        'เลือกแท็บ <strong>Route</strong> → ใส่ IP ด้านล่าง → แตะ <strong>Start</strong> (มุมบนขวา)',
+        iosStep4:        '⏳ รอจนกว่าจะขึ้นอย่างน้อย 15 hop',
+        iosStep5:        'จับภาพหน้าจอผลลัพธ์',
+        iosIPsLabel:     'รัน Route สำหรับแต่ละ IP:',
+        iosAppStoreBtn:  '⬇ ดาวน์โหลดบน App Store',
+        androidStep1:    'ค้นหา <strong>Network Analyzer</strong> บน Google Play แล้วติดตั้ง (ฟรี)',
+        androidStep2:    'เปิดแอป → แตะ <strong>Tools</strong> → เลือกแท็บ <strong>Route</strong>',
+        androidStep3:    'ใส่ IP ด้านล่าง → แตะ <strong>Start</strong>',
+        androidStep4:    '⏳ รอจนกว่าจะขึ้นอย่างน้อย 15 hop',
+        androidStep5:    'จับภาพหน้าจอผลลัพธ์',
+        androidIPsLabel: 'รัน Route สำหรับแต่ละ IP:',
+        androidPlayBtn:  '⬇ ดาวน์โหลดบน Google Play',
+        uploadScreenshot:'📷 อัปโหลดภาพหน้าจอ',
+        uploadSizeError: 'ไฟล์ใหญ่เกินไป (สูงสุด 10 MB) กรุณาบีบอัดแล้วลองใหม่',
+        uploadPreviewAlt:'ตัวอย่างภาพหน้าจอ',
+        step3Label:       'ขั้นตอนที่ 3 — รายละเอียดปัญหา',
+        openIdLabel:      'Open ID',
+        openIdGuide:      openIdGuide('ในเกม: แตะรูปโปรไฟล์ (มุมบนซ้าย) → ข้อมูลตัวละคร → แตะไอคอนคัดลอกข้าง ID (มุมล่างขวา) แล้ววางที่นี่ หากไม่มีให้เว้นว่างไว้', 'แตะรูปโปรไฟล์ (บนซ้าย)', 'คัดลอก ID (ล่างขวา)'),
+        openIdPlaceholder:'เช่น 123456789',
+        nicknameLabel:    'ชื่อเล่นในเกม',
+        nicknamePlaceholder:'ชื่อเล่นในเกมของคุณ',
+        nicknameGuide:    'หากเข้าสู่ระบบไม่ได้ กรุณากรอกชื่อเล่นในเกมแทน',
+        issueTimeLabel:  'ปัญหาเกิดขึ้นเมื่อใด?',
+        issueTimeSub:    'ระบุเวลาโดยประมาณได้ — หากไม่แน่ใจให้เว้นว่าง',
+        step4Label:      'ขั้นตอนที่ 4 — ส่งข้อมูล',
+        disclaimerText:  'การส่งรายงานนี้ถือว่าคุณยินยอมให้แชร์ข้อมูลการวินิจฉัยเครือข่ายของคุณ ซึ่งรวมถึงที่อยู่ IP ข้อมูลอุปกรณ์ และผลลัพธ์ข้างต้น กับทีมสนับสนุน เพื่อใช้ตรวจสอบปัญหาการเชื่อมต่อเท่านั้น ข้อมูลนี้จะไม่ถูกแชร์กับบุคคลที่สาม',
+        submitBtn:       'ฉันยอมรับและส่งข้อมูล',
+        submitting:      'กำลังส่ง…',
+        submittedBtn:    'ส่งแล้ว ✓',
+        submitError:     'ส่งไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+        submitErrorNoIP: 'กรุณารอให้ตรวจจับ IP เสร็จก่อนส่ง',
+        detecting:       'กำลังตรวจจับ…',
+        testing:         'กำลังทดสอบ…',
+        timeout:         'หมดเวลา ✗',
+        failed:          'ล้มเหลว ✗',
+      },
+      id: {
+        step1Label:      'LANGKAH 1 — DETEKSI OTOMATIS',
+        yourIP:          'IP ANDA',
+        yourISP:         'ISP',
+        packetLoss:      'PACKET LOSS',
+        deviceOS:        'PERANGKAT / OS',
+        screenRes:       'LAYAR',
+        timezoneLabel:   'ZONA WAKTU',
+        connectionType:  'KONEKSI',
+        deviceMemory:    'MEMORI',
+        cpuCores:        'INTI CPU',
+        step2Label:       'LANGKAH 2 — TRACEROUTE',
+        step2Loading:     'Memuat informasi server…',
+        traceInstr1Win:  'Klik <strong>tombol Start</strong> (logo Windows di pojok kiri bawah layar) → ketik <kbd>cmd</kbd> → klik <strong>Command Prompt</strong>',
+        traceInstr1Mac:  'Klik ikon <strong>🔍 kaca pembesar</strong> di pojok kanan atas layar → ketik <kbd>Terminal</kbd> → tekan Enter',
+        traceInstr2:     'Salin dan jalankan perintah berikut:',
+        traceInstr3:     'Tempel hasilnya ke kotak di bawah:',
+        traceHint:       '⏳ Harap tunggu hingga minimal hop 15 muncul sebelum menempel hasil.',
+        pastePlaceholder:'Tempel hasil traceroute di sini…',
+        iosStep1:        'Unduh <strong>Network Analyzer: net tools</strong> dari App Store (gratis)',
+        iosStep2:        'Buka aplikasi → ketuk <strong>Tools</strong> di bilah bawah',
+        iosStep3:        'Pilih tab <strong>Route</strong> → masukkan IP di bawah → ketuk <strong>Start</strong> (kanan atas)',
+        iosStep4:        '⏳ Tunggu hingga minimal 15 hop muncul',
+        iosStep5:        'Ambil tangkapan layar hasilnya',
+        iosIPsLabel:     'Jalankan Route untuk setiap IP:',
+        iosAppStoreBtn:  '⬇ Unduh di App Store',
+        androidStep1:    'Cari <strong>Network Analyzer</strong> di Google Play lalu instal (gratis)',
+        androidStep2:    'Buka aplikasi → ketuk <strong>Tools</strong> → pilih tab <strong>Route</strong>',
+        androidStep3:    'Masukkan IP di bawah → ketuk <strong>Start</strong>',
+        androidStep4:    '⏳ Tunggu hingga minimal 15 hop muncul',
+        androidStep5:    'Ambil tangkapan layar hasilnya',
+        androidIPsLabel: 'Jalankan Route untuk setiap IP:',
+        androidPlayBtn:  '⬇ Dapatkan di Google Play',
+        uploadScreenshot:'📷 Unggah Tangkapan Layar',
+        uploadSizeError: 'File terlalu besar (maks 10 MB). Silakan kompres dan coba lagi.',
+        uploadPreviewAlt:'Pratinjau tangkapan layar',
+        step3Label:       'LANGKAH 3 — DETAIL MASALAH',
+        openIdLabel:      'Open ID',
+        openIdGuide:      openIdGuide('Di dalam game: ketuk avatar Anda (kiri atas) → Info Karakter → ketuk ikon salin di sebelah ID Anda (kanan bawah). Tempel di sini. Kosongkan jika tidak tersedia.', 'Ketuk avatar (kiri atas)', 'Salin ID (kanan bawah)'),
+        openIdPlaceholder:'mis. 123456789',
+        nicknameLabel:    'Nama Panggilan dalam Game',
+        nicknamePlaceholder:'Nama panggilan Anda dalam game',
+        nicknameGuide:    'Jika tidak bisa masuk, isikan nama panggilan Anda',
+        issueTimeLabel:  'Kapan masalah terjadi?',
+        issueTimeSub:    'Perkiraan waktu sudah cukup — kosongkan jika tidak yakin',
+        step4Label:      'LANGKAH 4 — KIRIM',
+        disclaimerText:  'Dengan mengirimkan laporan ini, Anda setuju untuk membagikan data diagnostik jaringan Anda, termasuk alamat IP, informasi perangkat, dan hasil di atas, kepada tim dukungan untuk keperluan investigasi masalah koneksi. Data ini tidak akan dibagikan kepada pihak ketiga.',
+        submitBtn:       'Saya Setuju dan Kirim',
+        submitting:      'Mengirim…',
+        submittedBtn:    'Terkirim ✓',
+        submitError:     'Pengiriman gagal. Silakan coba lagi.',
+        submitErrorNoIP: 'Harap tunggu deteksi IP selesai sebelum mengirim.',
+        detecting:       'Mendeteksi…',
+        testing:         'Menguji…',
+        timeout:         'Waktu habis ✗',
+        failed:          'Gagal ✗',
+      },
+      es: {
+        step1Label:      'PASO 1 — DETECCIÓN AUTOMÁTICA',
+        yourIP:          'TU IP',
+        yourISP:         'PROVEEDOR (ISP)',
+        packetLoss:      'PÉRDIDA DE PAQUETES',
+        deviceOS:        'DISPOSITIVO / SO',
+        screenRes:       'PANTALLA',
+        timezoneLabel:   'ZONA HORARIA',
+        connectionType:  'CONEXIÓN',
+        deviceMemory:    'MEMORIA',
+        cpuCores:        'NÚCLEOS DE CPU',
+        step2Label:       'PASO 2 — TRACEROUTE',
+        step2Loading:     'Cargando información del servidor…',
+        traceInstr1Win:  'Haz clic en el <strong>botón Inicio</strong> (logo de Windows en la esquina inferior izquierda) → escribe <kbd>cmd</kbd> → haz clic en <strong>Símbolo del sistema</strong>',
+        traceInstr1Mac:  'Haz clic en el icono de la <strong>🔍 lupa</strong> en la esquina superior derecha → escribe <kbd>Terminal</kbd> → pulsa Enter',
+        traceInstr2:     'Copia y ejecuta este comando:',
+        traceInstr3:     'Pega el resultado en el cuadro de abajo:',
+        traceHint:       '⏳ Espera hasta que aparezca al menos el salto 15 antes de pegar el resultado.',
+        pastePlaceholder:'Pega aquí el resultado de traceroute…',
+        iosStep1:        'Descarga <strong>Network Analyzer: net tools</strong> desde la App Store (gratis)',
+        iosStep2:        'Abre la app → toca <strong>Tools</strong> en la barra inferior',
+        iosStep3:        'Selecciona la pestaña <strong>Route</strong> → introduce la IP de abajo → toca <strong>Start</strong> (arriba a la derecha)',
+        iosStep4:        '⏳ Espera hasta que aparezcan al menos 15 saltos',
+        iosStep5:        'Haz una captura de pantalla del resultado',
+        iosIPsLabel:     'Ejecuta Route para cada IP:',
+        iosAppStoreBtn:  '⬇ Descargar en App Store',
+        androidStep1:    'Busca <strong>Network Analyzer</strong> en Google Play e instálala (gratis)',
+        androidStep2:    'Abre la app → toca <strong>Tools</strong> → selecciona la pestaña <strong>Route</strong>',
+        androidStep3:    'Introduce la IP de abajo → toca <strong>Start</strong>',
+        androidStep4:    '⏳ Espera hasta que aparezcan al menos 15 saltos',
+        androidStep5:    'Haz una captura de pantalla del resultado',
+        androidIPsLabel: 'Ejecuta Route para cada IP:',
+        androidPlayBtn:  '⬇ Conseguir en Google Play',
+        uploadScreenshot:'📷 Subir captura',
+        uploadSizeError: 'Archivo demasiado grande (máx. 10 MB). Comprímelo e inténtalo de nuevo.',
+        uploadPreviewAlt:'Vista previa de la captura',
+        step3Label:       'PASO 3 — DETALLES DEL PROBLEMA',
+        openIdLabel:      'Open ID',
+        openIdGuide:      openIdGuide('En el juego: toca tu avatar (arriba a la izquierda) → Información del personaje → toca el icono de copiar junto a tu ID (abajo a la derecha). Pégalo aquí. Déjalo en blanco si no está disponible.', 'Toca el avatar (arriba izq.)', 'Copia el ID (abajo dcha.)'),
+        openIdPlaceholder:'p. ej. 123456789',
+        nicknameLabel:    'Apodo en el juego',
+        nicknamePlaceholder:'Tu apodo en el juego',
+        nicknameGuide:    'Si no puedes iniciar sesión, introduce tu apodo',
+        issueTimeLabel:  '¿Cuándo ocurrió el problema?',
+        issueTimeSub:    'Una hora aproximada es suficiente — déjalo en blanco si no estás seguro',
+        step4Label:      'PASO 4 — ENVIAR',
+        disclaimerText:  'Al enviar este informe, aceptas compartir tus datos de diagnóstico de red, incluidos tu dirección IP, la información del dispositivo y los resultados anteriores, con el equipo de soporte con el fin de investigar problemas de conexión. Estos datos no se compartirán con terceros.',
+        submitBtn:       'Acepto y enviar',
+        submitting:      'Enviando…',
+        submittedBtn:    'Enviado ✓',
+        submitError:     'Error al enviar. Inténtalo de nuevo.',
+        submitErrorNoIP: 'Espera a que finalice la detección de IP antes de enviar.',
+        detecting:       'Detectando…',
+        testing:         'Probando…',
+        timeout:         'Tiempo agotado ✗',
+        failed:          'Error ✗',
       }
     };
 
@@ -324,11 +559,27 @@
       return i18n[currentLang][key] || i18n.en[key] || key;
     }
 
+    // Maps browser locale → supported language; anything else falls back to English
+    function detectLang() {
+      const prefs = (navigator.languages && navigator.languages.length)
+        ? navigator.languages
+        : [navigator.language || 'en'];
+      for (const pref of prefs) {
+        const code = pref.toLowerCase();
+        if (code.startsWith('vi')) return 'vi';
+        if (code.startsWith('th')) return 'th';
+        if (code.startsWith('id') || code.startsWith('in')) return 'id';  // 'in' = legacy Indonesian code
+        if (code.startsWith('es')) return 'es';
+        if (code.startsWith('zh-tw') || code.startsWith('zh-hk') || code.startsWith('zh-hant')) return 'zh';
+      }
+      return 'en';
+    }
+
     function setLang(lang) {
-      currentLang = lang;
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick') === `setLang('${lang}')`);
-      });
+      currentLang = i18n[lang] ? lang : 'en';
+      lang = currentLang;
+      document.documentElement.lang = lang;
+      document.getElementById('lang-select').value = lang;
       document.querySelectorAll('[data-i18n]').forEach(el => {
         el.innerHTML = t(el.dataset.i18n);
       });
@@ -745,9 +996,7 @@ function copyCmd(text, btn) {
 
     // ── Init ──────────────────────────────────────────────────────────────────
     (function init() {
-      const browserLang  = navigator.language || 'en';
-      const detectedLang = (browserLang.startsWith('zh-TW') || browserLang.startsWith('zh-HK')) ? 'zh' : 'en';
-      setLang(detectedLang);
+      setLang(detectLang());
 
       document.getElementById('header-game').textContent   = CONFIG.game;
       document.getElementById('header-region').textContent = CONFIG.region;
