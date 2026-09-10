@@ -244,7 +244,8 @@
         androidIPsLabel: 'Run Route for each IP:',
         androidPlayBtn:  '⬇ Get on Google Play',
         uploadScreenshot:'📷 Upload Screenshot',
-        uploadSizeError: 'File too large (max 10 MB). Please compress and try again.',
+        uploadSizeError: 'File too large (max 5 MB). Please compress and try again.',
+        uploadCountError:'Please upload at most 4 screenshots.',
         uploadPreviewAlt:'Screenshot preview',
         step3Label:       'STEP 3 — ISSUE DETAILS',
         openIdLabel:      'Open ID',
@@ -301,7 +302,8 @@
         androidIPsLabel: '請對每個 IP 分別執行 Route：',
         androidPlayBtn:  '⬇ 前往 Google Play 下載',
         uploadScreenshot:'📷 上傳截圖',
-        uploadSizeError: '檔案過大（最大 10 MB），請壓縮後再試。',
+        uploadSizeError: '檔案過大（最大 5 MB），請壓縮後再試。',
+        uploadCountError:'最多上傳 4 張截圖。',
         uploadPreviewAlt:'截圖預覽',
         step3Label:       '步驟 3 — 問題詳情',
         openIdLabel:      'Open ID',
@@ -358,7 +360,8 @@
         androidIPsLabel: 'Chạy Route cho từng IP:',
         androidPlayBtn:  '⬇ Tải trên Google Play',
         uploadScreenshot:'📷 Tải ảnh chụp màn hình',
-        uploadSizeError: 'Tệp quá lớn (tối đa 10 MB). Vui lòng nén lại và thử lại.',
+        uploadSizeError: 'Tệp quá lớn (tối đa 5 MB). Vui lòng nén lại và thử lại.',
+        uploadCountError:'Vui lòng tải lên tối đa 4 ảnh chụp màn hình.',
         uploadPreviewAlt:'Xem trước ảnh chụp màn hình',
         step3Label:       'BƯỚC 3 — CHI TIẾT SỰ CỐ',
         openIdLabel:      'Open ID',
@@ -415,7 +418,8 @@
         androidIPsLabel: 'รัน Route สำหรับแต่ละ IP:',
         androidPlayBtn:  '⬇ ดาวน์โหลดบน Google Play',
         uploadScreenshot:'📷 อัปโหลดภาพหน้าจอ',
-        uploadSizeError: 'ไฟล์ใหญ่เกินไป (สูงสุด 10 MB) กรุณาบีบอัดแล้วลองใหม่',
+        uploadSizeError: 'ไฟล์ใหญ่เกินไป (สูงสุด 5 MB) กรุณาบีบอัดแล้วลองใหม่',
+        uploadCountError:'อัปโหลดภาพหน้าจอได้สูงสุด 4 ภาพ',
         uploadPreviewAlt:'ตัวอย่างภาพหน้าจอ',
         step3Label:       'ขั้นตอนที่ 3 — รายละเอียดปัญหา',
         openIdLabel:      'Open ID',
@@ -472,7 +476,8 @@
         androidIPsLabel: 'Jalankan Route untuk setiap IP:',
         androidPlayBtn:  '⬇ Dapatkan di Google Play',
         uploadScreenshot:'📷 Unggah Tangkapan Layar',
-        uploadSizeError: 'File terlalu besar (maks 10 MB). Silakan kompres dan coba lagi.',
+        uploadSizeError: 'File terlalu besar (maks 5 MB). Silakan kompres dan coba lagi.',
+        uploadCountError:'Unggah maksimal 4 tangkapan layar.',
         uploadPreviewAlt:'Pratinjau tangkapan layar',
         step3Label:       'LANGKAH 3 — DETAIL MASALAH',
         openIdLabel:      'Open ID',
@@ -529,7 +534,8 @@
         androidIPsLabel: 'Ejecuta Route para cada IP:',
         androidPlayBtn:  '⬇ Conseguir en Google Play',
         uploadScreenshot:'📷 Subir captura',
-        uploadSizeError: 'Archivo demasiado grande (máx. 10 MB). Comprímelo e inténtalo de nuevo.',
+        uploadSizeError: 'Archivo demasiado grande (máx. 5 MB). Comprímelo e inténtalo de nuevo.',
+        uploadCountError:'Sube como máximo 4 capturas de pantalla.',
         uploadPreviewAlt:'Vista previa de la captura',
         step3Label:       'PASO 3 — DETALLES DEL PROBLEMA',
         openIdLabel:      'Open ID',
@@ -801,7 +807,13 @@
       if (!files.length) return;
 
       const errEl = document.getElementById('upload-error');
-      const oversized = files.filter(f => f.size > 10 * 1024 * 1024);
+      if (files.length > 4) {
+        errEl.textContent = t('uploadCountError');
+        errEl.style.display = 'block';
+        input.value = '';
+        return;
+      }
+      const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
       if (oversized.length) {
         errEl.textContent = t('uploadSizeError');
         errEl.style.display = 'block';
@@ -833,6 +845,8 @@
       const active  = getActivePlatform();
 
       label.textContent = t('step2Label');
+
+      state.matchedServers = state.matchedServers.filter(srv => /^[0-9a-fA-F:.]{2,45}$/.test(srv.ip));
 
       if (!state.matchedServers.length) {
         content.innerHTML = `<div style="color:#94a3b8;font-size:13px;padding:4px 0">${t('step2Loading')}</div>`;
@@ -866,6 +880,7 @@
               <textarea
                 class="paste-area"
                 id="${tid}"
+                maxlength="20000"
                 placeholder="${t('pastePlaceholder')}"
                 oninput="onTraceInput('${srv.ip}', this.value)"
               ></textarea>
