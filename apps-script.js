@@ -2,6 +2,7 @@
 const SHEET_ID        = '1upS5mcj3kpEX-CP_DpwJVyw_F4t1pQbqABZqiPOTLws';
 const DRIVE_FOLDER_ID = '1ntyl6hnb7CdcXdOAO2Y1JKMABYeU32hu';
 const SEATALK_WEBHOOK_URL = '';  // fill to enable SeaTalk notifications (B2 upgrade)
+const REPORT_TIMEZONE = 'Asia/Taipei';  // timezone the Submission Time column is reported in
 
 const REPORT_HEADERS = [
   'Submission Time', 'Issue Time', 'IP', 'Country Code', 'ISP', 'City',
@@ -59,12 +60,14 @@ function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
 
+    const submissionTime = Utilities.formatDate(new Date(), REPORT_TIMEZONE, "yyyy-MM-dd HH:mm:ss 'UTC'Z");
+
     // Screenshots → Drive
     let screenshotUrl = '—';
     if (payload.screenshots && payload.screenshots.length) {
       const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
       const urls   = payload.screenshots.map((s, i) => {
-        const filename = `${payload.submissionTime}_${payload.ip}_${i + 1}.jpg`.replace(/[: ]/g, '-');
+        const filename = `${submissionTime}_${payload.ip}_${i + 1}.jpg`.replace(/[: ]/g, '-');
         const blob     = Utilities.newBlob(Utilities.base64Decode(s.data), s.mimeType, filename);
         const file     = folder.createFile(blob);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -85,7 +88,7 @@ function doPost(e) {
     const sheet     = getOrCreateSheet(ss, sheetName);
 
     sheet.appendRow([
-      payload.submissionTime,
+      submissionTime,
       payload.issueTime      || '—',
       payload.ip             || '—',
       payload.countryCode    || '—',

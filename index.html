@@ -906,12 +906,8 @@ function copyCmd(text, btn) {
     }
 
     // ── Timestamp ─────────────────────────────────────────────────────────────
-    function formatTimestamp() {
-      const now    = new Date();
-      const offset = 8 * 60;
-      const local  = new Date(now.getTime() + (offset - now.getTimezoneOffset()) * 60000);
-      return local.toISOString().replace('T', ' ').slice(0, 19) + ' UTC+8';
-    }
+    // Submission time is generated server-side by Apps Script — the player's
+    // device clock is neither trustworthy nor in our reporting timezone.
 
     function buildIssueTime() {
       const d  = document.getElementById('issue-date').value;
@@ -941,7 +937,6 @@ function copyCmd(text, btn) {
 
       const servers = state.matchedServers.length ? state.matchedServers : CONFIG.defaultServers;
       const payload = {
-        submissionTime: formatTimestamp(),
         issueTime:      buildIssueTime(),
         ip:             state.ip,
         countryCode:    state.countryCode    || '—',
