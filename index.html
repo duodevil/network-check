@@ -909,10 +909,13 @@ function copyCmd(text, btn) {
     // Submission time is generated server-side by Apps Script — the player's
     // device clock is neither trustworthy nor in our reporting timezone.
 
+    // The player enters the time in their own local timezone — tag it so the
+    // Issue Time column can be lined up against the Asia/Taipei submission time
     function buildIssueTime() {
       const d  = document.getElementById('issue-date').value;
       const ti = document.getElementById('issue-time').value;
-      return [d, ti].filter(Boolean).join(' ');
+      const entered = [d, ti].filter(Boolean).join(' ');
+      return entered ? `${entered} (${state.timezone || 'unknown timezone'})` : '';
     }
 
     // ── Submit ────────────────────────────────────────────────────────────────
