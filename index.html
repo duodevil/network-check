@@ -942,7 +942,22 @@
       const d  = document.getElementById('issue-date').value;
       const ti = document.getElementById('issue-time').value;
       const entered = [d, ti].filter(Boolean).join(' ');
-      return entered ? `${entered} (${state.timezone || 'unknown timezone'})` : '';
+      if (!entered) return '';
+
+      const tagged = `${entered} (${state.timezone || 'unknown timezone'})`;
+      if (!d || !ti) return tagged;              // a date alone cannot be converted
+
+      const at = new Date(`${d}T${ti}`);         // parsed as the player's local time
+      if (isNaN(at)) return tagged;
+
+      const p = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Taipei', hourCycle: 'h23',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+      }).formatToParts(at).reduce((o, x) => (o[x.type] = x.value, o), {});
+      const taipei = `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`;
+
+      return taipei === entered ? tagged : `${tagged} → 台北 ${taipei}`;
     }
 
     // ── Submit ────────────────────────────────────────────────────────────────
