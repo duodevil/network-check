@@ -754,19 +754,45 @@
       return (state.os === 'iOS' || state.os === 'Android') ? state.os : 'PC';
     }
 
-function copyCmd(text, btn) {
-      navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.textContent;
-        btn.textContent = '✓';
-        setTimeout(() => { btn.textContent = orig; }, 1500);
-      }).catch(() => {
+    function copyCmd(text, btn) {
+      const flash = label => {
+        btn.dataset.label = btn.dataset.label || btn.textContent;
+        btn.textContent = label;
+        setTimeout(() => { btn.textContent = btn.dataset.label; }, 1500);
+      };
+
+      // Last resort: select the command so the player can copy it by hand
+      const selectCmd = () => {
+        const span = btn.parentElement.querySelector('span');
+        if (!span) return;
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      };
+
+      const legacyCopy = () => {
         const ta = document.createElement('textarea');
         ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
         document.body.appendChild(ta);
         ta.select();
-        document.execCommand('copy');
+        ta.setSelectionRange(0, text.length);
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
         document.body.removeChild(ta);
-      });
+        if (ok) { flash('✓'); } else { selectCmd(); flash('⌘C'); }
+      };
+
+      // navigator.clipboard is undefined outside a secure context — that throws
+      // synchronously, so it cannot be caught by .catch() on the promise
+      try {
+        navigator.clipboard.writeText(text).then(() => flash('✓'), legacyCopy);
+      } catch (e) {
+        legacyCopy();
+      }
     }
 
     // ── Screenshot upload (multi-file) ───────────────────────────────────────
